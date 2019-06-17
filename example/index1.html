@@ -1,0 +1,33 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" id="viewport" content="initial-scale=1.0, minimum-scale=1.0, shrink-to-fit=no">
+<meta name="apple-mobile-web-app-capable" content="YES">
+<link rel="stylesheet" type="text/css" href="../src/cal-heatmap.css">
+    <link rel="stylesheet" type="text/css" href="../src/index.css">
+    <title>Cal Heatmap</title>
+    <script src="../src/moment.min.js" charset="utf-8"></script>
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="../src/cal-heatmap.min.js"></script>
+  </head>
+  <body>
+    <div id="cal-heatmap"></div>
+
+    <script type="text/javascript">
+var cal = new CalHeatMap();
+cal.init({
+    itemSelector: "#cal-heatmap",
+    start: new Date(2000, 0, 1, 1),
+	domain: "month",
+	subDomain: "x_day",
+	cellSize: 20,
+    range: 1,
+    domainDynamicDimension: true,
+	displayLegend: false,
+    subDomainTextFormat: "%d",
+	nextSelector: "#domainDynamicDimension-next",
+	previousSelector: "#domainDynamicDimension-previous"
+});
+    </script>
+  </body>
+</html>

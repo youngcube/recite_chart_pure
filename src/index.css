@@ -1,0 +1,17 @@
+body{
+    display: flex;
+    width: 100%;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+}
+
+#cal-heatmap{
+    width: 100%;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+
+}
