@@ -1,0 +1,91 @@
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" id="viewport" content="initial-scale=1.0, minimum-scale=1.0, shrink-to-fit=no">
+    <meta name="apple-mobile-web-app-capable" content="YES">
+    <link rel="stylesheet" type="text/css" href="./cal-heatmap.css">
+    <!-- <link rel="stylesheet" type="text/css" href="./index.css"> -->
+    <title>Cal Heatmap</title>
+    <script src="./moment.min.js" charset="utf-8"></script>
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="./cal-heatmap.min.js"></script>
+  </head>
+
+  <body>
+    <div id="cal-heatmap"></div>
+    <script type="text/javascript">
+      function averageCount(arr){
+        var sum = 0;
+        arr.sort(function(a,b){return a-b});
+        arr.pop();
+        arr.shift();
+        for(var i = 0;i < arr.length;i++){
+          sum += arr[i];
+        }
+        return sum / arr.length;
+      }
+
+      function init(data){
+        var dataObj = JSON.parse(data);
+        var finalDataObj = {};
+        var thisDate = new Date(2019, 1 , 1);
+        var countArray = [];
+        // 按照规定格式给予数据
+        for (var i = 0; i < dataObj.length; i++){
+          var dataItem = dataObj[i];
+          finalDataObj[dataItem.epoch] = dataItem.count;
+          if (countArray.indexOf(dataItem.count) === -1) {
+            countArray.push(dataItem.count)
+          }
+        }
+
+        // 去掉最高分，去掉最低分，然后计算平均值
+        var middleAverage = averageCount(countArray);
+        var q1 = middleAverage / 2;
+        var q2 = middleAverage;
+        var q3 = middleAverage * 2;
+
+
+        var cal = new CalHeatMap();
+        cal.init({
+          itemSelector: "#cal-heatmap",
+          label: {
+            position: "top"
+          },
+          range: 1,
+          // colLimit: 5,
+          rowLimit: 7,
+          start: thisDate,
+          data: finalDataObj,
+          domain: "year",
+          domainLabelFormat: "%m",
+          // domainLabelFormat: "",
+          subDomain: "day",
+          cellSize: 16,
+          cellRadius: 5,
+          domainDynamicDimension: true,
+          displayLegend: false,
+          legend: [q1, q2, q3],
+          subDomainTextFormat: "%d",
+          // subDomainTextFormat: "",
+          itemName: "",
+          // nextSelector: "#domainDynamicDimension-next",
+          // previousSelector: "#domainDynamicDimension-previous"
+        });
+        cal.options.range = 1;
+        var containers = document.getElementsByClassName("cal-heatmap-container");
+        var calMap = containers[0];
+        document.getElementById("cal-heatmap").style.width = calMap.style.width;
+      }
+
+      function getClientHeight(){
+        var containers = document.getElementsByClassName("cal-heatmap-container");
+        var calMap = containers[0];
+        return calMap.getBBox().height;
+      }
+
+    </script>
+  </body>
+
+</html>
