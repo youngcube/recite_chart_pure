@@ -1,91 +1,87 @@
+<!DOCTYPE html>
 <html>
+<head>
+        <meta charset="utf-8">
+        <meta name="viewport" id="viewport" content="initial-scale=1.0, minimum-scale=1.0, shrink-to-fit=no">
+        <meta name="apple-mobile-web-app-capable" content="YES">
+  <title>d3.js calendar heatmap graph</title>
+  <link rel="stylesheet" type="text/css" href="./calendar-heatmap.min.css">
+</head>
+<body>
 
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" id="viewport" content="initial-scale=1.0, minimum-scale=1.0, shrink-to-fit=no">
-    <meta name="apple-mobile-web-app-capable" content="YES">
-    <link rel="stylesheet" type="text/css" href="./cal-heatmap.css">
-    <!-- <link rel="stylesheet" type="text/css" href="./index.css"> -->
-    <title>Cal Heatmap</title>
-    <script src="./moment.min.js" charset="utf-8"></script>
-    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-    <script src="./cal-heatmap.min.js"></script>
-  </head>
+  <div id="calendar"></div>
 
-  <body>
-    <div id="cal-heatmap"></div>
-    <script type="text/javascript">
-      function averageCount(arr){
-        var sum = 0;
-        arr.sort(function(a,b){return a-b});
-        arr.pop();
-        arr.shift();
-        for(var i = 0;i < arr.length;i++){
-          sum += arr[i];
-        }
-        return sum / arr.length;
-      }
+  <script src="./moment.min.js" charset="utf-8"></script>
+  <script src="./d3.min.js" charset="utf-8"></script>
+  <script src="./calendar-heatmap.min.js"></script>
 
-      function init(data){
-        var dataObj = JSON.parse(data);
-        var finalDataObj = {};
-        var thisDate = new Date(2019, 1 , 1);
-        var countArray = [];
+  <script>
+
+    function init(data) {
+      // Initialize random data for the demo
+      var now = moment().endOf('day').toDate();
+      var time_ago = moment().startOf('day').subtract(10, 'year').toDate();
+      var example_data = d3.timeDays(time_ago, now).map(function (dateElement, index) {
+        return {
+          date: dateElement,
+          details: Array.apply(null, new Array(Math.floor(Math.random() * 15))).map(function(e, i, arr) {
+            return {
+              // 'name': 'Project ' + Math.ceil(Math.random() * 10),
+              // 'date': function () {
+              //   var projectDate = new Date(dateElement.getTime());
+              //   projectDate.setHours(Math.floor(Math.random() * 24));
+              //   projectDate.setMinutes(Math.floor(Math.random() * 60));
+              //   return projectDate;
+              // }(),
+              'value': 3600 * ((arr.length - i) / 5) + Math.floor(Math.random() * 3600) * Math.round(Math.random() * (index / 365))
+            }
+          }),
+          init: function () {
+            this.total = this.details.reduce(function (prev, e) {
+              return prev + e.value;
+            }, 0);
+            return this;
+          }
+        }.init();
+      });
+
+      console.log(example_data)
+
+      var dataObj = JSON.parse(data);
+        var finalDataList = [];
         // 按照规定格式给予数据
         for (var i = 0; i < dataObj.length; i++){
           var dataItem = dataObj[i];
-          finalDataObj[dataItem.epoch] = dataItem.count;
-          if (countArray.indexOf(dataItem.count) === -1) {
-            countArray.push(dataItem.count)
-          }
+          var thisDate = new Date(0);
+          thisDate.setUTCSeconds(dataItem.epoch);
+          var details = [{"value": dataItem.count}];
+          finalDataList.push({date: thisDate, details: details, total: dataItem.count});
         }
 
-        // 去掉最高分，去掉最低分，然后计算平均值
-        var middleAverage = averageCount(countArray);
-        var q1 = middleAverage / 2;
-        var q2 = middleAverage;
-        var q3 = middleAverage * 2;
 
-
-        var cal = new CalHeatMap();
-        cal.init({
-          itemSelector: "#cal-heatmap",
-          label: {
-            position: "top"
-          },
-          range: 1,
-          // colLimit: 5,
-          rowLimit: 7,
-          start: thisDate,
-          data: finalDataObj,
-          domain: "year",
-          domainLabelFormat: "%m",
-          // domainLabelFormat: "",
-          subDomain: "day",
-          cellSize: 16,
-          cellRadius: 5,
-          domainDynamicDimension: true,
-          displayLegend: false,
-          legend: [q1, q2, q3],
-          subDomainTextFormat: "%d",
-          // subDomainTextFormat: "",
-          itemName: "",
-          // nextSelector: "#domainDynamicDimension-next",
-          // previousSelector: "#domainDynamicDimension-previous"
-        });
-        cal.options.range = 1;
-        var containers = document.getElementsByClassName("cal-heatmap-container");
-        var calMap = containers[0];
-        document.getElementById("cal-heatmap").style.width = calMap.style.width;
-      }
+      // Set the div target id
+      var div_id = 'calendar';
+      // Set custom color for the calendar heatmap
+      var color = '#1191e6';
+      // Set overview type (choices are year, month and day)
+      var overview = 'year';
+      // Handler function
+      var print = function (val) {
+        console.log(val);
+      };
+      // Initialize calendar heatmap
+      calendarHeatmap.init(finalDataList, div_id, color, overview);
+    }
 
       function getClientHeight(){
+        return 200;
         var containers = document.getElementsByClassName("cal-heatmap-container");
         var calMap = containers[0];
         return calMap.getBBox().height;
       }
 
-    </script>
-  </body>
+      init('[{"epoch":"1516665600","count":4},{"epoch":"1516924800","count":8},{"epoch":"1521936000","count":1},{"epoch":"1523836800","count":14},{"epoch":"1525564800","count":3},{"epoch":"1526342400","count":1},{"epoch":"1527724800","count":1},{"epoch":"1532476800","count":20},{"epoch":"1533513600","count":12},{"epoch":"1533686400","count":31},{"epoch":"1535328000","count":9},{"epoch":"1537401600","count":5},{"epoch":"1538006400","count":23},{"epoch":"1538092800","count":23},{"epoch":"1538179200","count":28},{"epoch":"1538265600","count":40},{"epoch":"1538956800","count":47},{"epoch":"1539043200","count":9},{"epoch":"1539216000","count":6},{"epoch":"1539302400","count":3},{"epoch":"1539820800","count":23},{"epoch":"1539907200","count":1},{"epoch":"1540857600","count":73},{"epoch":"1540944000","count":15},{"epoch":"1541030400","count":1},{"epoch":"1541116800","count":3},{"epoch":"1541203200","count":1},{"epoch":"1541462400","count":1},{"epoch":"1542067200","count":9},{"epoch":"1542153600","count":13},{"epoch":"1542499200","count":4},{"epoch":"1542672000","count":2},{"epoch":"1542931200","count":3},{"epoch":"1543190400","count":3},{"epoch":"1543968000","count":1},{"epoch":"1544313600","count":182},{"epoch":"1544400000","count":13},{"epoch":"1545091200","count":17},{"epoch":"1545177600","count":5},{"epoch":"1545264000","count":10},{"epoch":"1552262400","count":21},{"epoch":"1557187200","count":30},{"epoch":"1560124800","count":1}]');
 
+  </script>
+</body>
 </html>

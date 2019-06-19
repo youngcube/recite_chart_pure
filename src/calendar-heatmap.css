@@ -2,11 +2,8 @@ text.month-name,
 text.calendar-heatmap-legend-text,
 text.day-initial {
   font-size: 10px;
-  fill: #aaaaaa;
-  font-family: Helvetica, arial, 'Open Sans', sans-serif
-}
-.day-cell {
-  border: 1px solid gray;
+  fill: inherit;
+  font-family: Helvetica, arial, 'Open Sans', sans-serif;
 }
 rect.day-cell:hover {
   stroke: #555555;
@@ -27,4 +24,5 @@ rect.day-cell:hover {
 }
 .calendar-heatmap {
   box-sizing: initial;
+  overflow: visible;
 }
