@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=no">
-        <!-- <meta name="viewport" id="viewport" content="initial-scale=1.0, minimum-scale=1.0, shrink-to-fit=no"> -->
-        <meta name="apple-mobile-web-app-capable" content="YES">
-  <title>d3.js calendar heatmap graph</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="YES">
+  <title>Heatmap</title>
   <link rel="stylesheet" type="text/css" href="./calendar-heatmap.min.css">
 </head>
+
 <body onload="loadFinished">
 
   <div id="calendar"></div>
@@ -17,126 +18,85 @@
   <script src="./calendar-heatmap.min.js"></script>
 
   <script>
-
-    function getDiffBetweenDay(firstDay, lastDay){
-        return Math.round((firstDay-lastDay)/(1000*60*60*24));
+    function getDiffBetweenDay(firstDay, lastDay) {
+      return Math.round((firstDay - lastDay) / (1000 * 60 * 60 * 24));
     }
 
-    function getDayOffset(day, offsetDay){
-        let dayOffset = new Date(day.getTime());
-        dayOffset.setDate(day.getDate() + offsetDay);
-        return dayOffset;
+    function getDayOffset(day, offsetDay) {
+      let dayOffset = new Date(day.getTime());
+      dayOffset.setDate(day.getDate() + offsetDay);
+      return dayOffset;
     }
 
-    function getYYYYMMDD(date){
-        Date.prototype.yyyymmdd = function() {
-            let mm = this.getMonth() + 1; // getMonth() is zero-based
-            let dd = this.getDate();
+    function getYYYYMMDD(date) {
+      Date.prototype.yyyymmdd = function () {
+        let mm = this.getMonth() + 1; // getMonth() is zero-based
+        let dd = this.getDate();
 
-            return [this.getFullYear(),
-                (mm>9 ? '' : '0') + mm,
-                (dd>9 ? '' : '0') + dd
-            ].join('');
-        };
-        return date.yyyymmdd();
+        return [this.getFullYear(),
+          (mm > 9 ? '' : '0') + mm,
+          (dd > 9 ? '' : '0') + dd
+        ].join('');
+      };
+      return date.yyyymmdd();
     }
 
-    function getDayObject(dayNum){
-        let f_y = dayNum.toString().substr(0,4),
-            f_m = dayNum.toString().substr(4,2),
-            f_d = dayNum.toString().substr(6,2);
-        return new Date(f_y,f_m - 1,f_d);
+    function getDayObject(dayNum) {
+      let f_y = dayNum.toString().substr(0, 4),
+        f_m = dayNum.toString().substr(4, 2),
+        f_d = dayNum.toString().substr(6, 2);
+      return new Date(f_y, f_m - 1, f_d);
     }
 
     function init(data) {
-      // Initialize random data for the demo
-      var now = moment().endOf('day').toDate();
-      var time_ago = moment().startOf('day').subtract(10, 'year').toDate();
-      var example_data = d3.timeDays(time_ago, now).map(function (dateElement, index) {
+      var dataObj = JSON.parse(data);
+      // 先获取需要绘制的范围
+      var firstDayItem = dataObj[0];
+      var lastDayItem = dataObj[dataObj.length - 1];
+      var firstDate = new Date(0);
+      firstDate.setUTCSeconds(firstDayItem.epoch);
+
+      var lastDate = new Date(0);
+      lastDate.setUTCSeconds(lastDayItem.epoch);
+
+      var firstYear = firstDate.getFullYear();
+      var lastYear = lastDate.getFullYear();
+      var yearOffset = lastYear - firstYear;
+      // alert(yearOffset);
+
+      // 将得到的数据做成Map
+      var dataListMap = {};
+      for (var i = 0; i < dataObj.length; i++) {
+        var dataItem = dataObj[i];
+        var thisDate = new Date(0);
+        thisDate.setUTCSeconds(dataItem.epoch);
+        dataListMap[getYYYYMMDD(thisDate)] = dataItem.count;
+      }
+
+      var firstYearItem = new Date(0);
+      firstYearItem.setUTCFullYear(firstYear);
+      firstYearItem = getDayOffset(firstYearItem, -1);
+
+      var lastYearItem = new Date(0);
+      lastYearItem.setUTCFullYear(lastYear + 1); //这里+1是为了保证拿到一整年
+      lastYearItem = getDayOffset(lastYearItem, -1);
+
+      var example_data1 = d3.timeDays(firstYearItem, lastYearItem).map(function (dateElement, index) {
+        console.log(getYYYYMMDD(dateElement) + " index = " + JSON.stringify(index));
+        var yyyymmddDate = getYYYYMMDD(dateElement);
+        var value = 0;
+        if (dataListMap[yyyymmddDate] !== undefined) {
+          value = dataListMap[yyyymmddDate];
+        }
+        dateElement = getDayOffset(dateElement, 365);
         return {
           date: dateElement,
-          details: Array.apply(null, new Array(Math.floor(Math.random() * 15))).map(function(e, i, arr) {
-            return {
-              // 'name': 'Project ' + Math.ceil(Math.random() * 10),
-              // 'date': function () {
-              //   var projectDate = new Date(dateElement.getTime());
-              //   projectDate.setHours(Math.floor(Math.random() * 24));
-              //   projectDate.setMinutes(Math.floor(Math.random() * 60));
-              //   return projectDate;
-              // }(),
-              'value': 3600 * ((arr.length - i) / 5) + Math.floor(Math.random() * 3600) * Math.round(Math.random() * (index / 365))
-            }
-          }),
-          init: function () {
-            this.total = this.details.reduce(function (prev, e) {
-              return prev + e.value;
-            }, 0);
-            return this;
-          }
-        }.init();
+          details: [{
+            value: value
+          }],
+          total: value
+        };
       });
-
-      // console.log(example_data)
-
-        var dataObj = JSON.parse(data);
-
-        // 先获取需要绘制的范围
-        var firstDayItem = dataObj[0];
-        var lastDayItem = dataObj[dataObj.length - 1];
-        var firstDate = new Date(0);
-        firstDate.setUTCSeconds(firstDayItem.epoch);
-
-        var lastDate = new Date(0);
-        lastDate.setUTCSeconds(lastDayItem.epoch);
-
-        var firstYear = firstDate.getFullYear();
-        var lastYear = lastDate.getFullYear();
-        var yearOffset = lastYear - firstYear;
-        // alert(yearOffset);
-
-        // 将得到的数据做成Map
-        var dataListMap = {};
-        for (var i = 0; i < dataObj.length; i++){
-          var dataItem = dataObj[i];
-          var thisDate = new Date(0);
-          thisDate.setUTCSeconds(dataItem.epoch);
-          dataListMap[getYYYYMMDD(thisDate)] = dataItem.count;
-        }
-
-        var firstYearItem = new Date(0);
-        firstYearItem.setUTCFullYear(firstYear);
-        firstYearItem = getDayOffset(firstYearItem, -1);
-
-        var lastYearItem = new Date(0);
-        lastYearItem.setUTCFullYear(lastYear + 1); //这里+1是为了保证拿到一整年
-        lastYearItem = getDayOffset(lastYearItem, -1);
-
-        var example_data1 = d3.timeDays(firstYearItem, lastYearItem).map(function (dateElement, index) {
-          console.log(getYYYYMMDD(dateElement) + " index = " + JSON.stringify(index));
-          var yyyymmddDate = getYYYYMMDD(dateElement);
-          var value = 0;
-          if (dataListMap[yyyymmddDate] !== undefined){
-            value = dataListMap[yyyymmddDate];
-          }
-          dateElement = getDayOffset(dateElement, 365);
-          return {
-            date: dateElement,
-            details: [{value: value}],
-            total: value
-          };
-        });
-        console.log(example_data1);
-
-
-        var finalDataList = [];
-        // 按照规定格式给予数据
-        for (var i = 0; i < dataObj.length; i++){
-          var dataItem = dataObj[i];
-          var thisDate = new Date(0);
-          thisDate.setUTCSeconds(dataItem.epoch);
-          var details = [{"value": dataItem.count}];
-          finalDataList.push({date: thisDate, details: details, total: dataItem.count});
-        }
 
 
       // Set the div target id
@@ -150,39 +110,28 @@
       calendarHeatmap.init(example_data1, div_id, color, overview);
     }
 
-    function loadFinished(){
+    function loadFinished() {
       var monthItemList = document.getElementsByClassName('label-month');
       var dateObj = new Date();
 
       var monthItem = monthItemList[dateObj.getMonth()];
       var scrollOffsetX = monthItem.getBBox().x;
-      console.log(dateObj.getMonth());
-      console.log(scrollOffsetX);
       //稍微移出去一点
-      if (scrollOffsetX > 10){
+      if (scrollOffsetX > 10) {
         scrollOffsetX -= 10;
       }
-      setTimeout(function(){
+      setTimeout(function () {
         window.scrollTo(scrollOffsetX, 0);
-      },1);
+      }, 1);
     }
 
-      function getClientHeight(){
-        var containers = document.getElementsByClassName("calendar-heatmap");
-        var calMap = containers[0];
-        var s = window.getComputedStyle(calMap).height;
-        return parseFloat(s.replace("px", ""));
-      }
-
-
-
-
-
-
-      // init('[{"epoch":"1516665600","count":4},{"epoch":"1516924800","count":8},{"epoch":"1521936000","count":1},{"epoch":"1523836800","count":14},{"epoch":"1525564800","count":3},{"epoch":"1526342400","count":1},{"epoch":"1527724800","count":1},{"epoch":"1532476800","count":20},{"epoch":"1533513600","count":12},{"epoch":"1533686400","count":31},{"epoch":"1535328000","count":9},{"epoch":"1537401600","count":5},{"epoch":"1538006400","count":23},{"epoch":"1538092800","count":23},{"epoch":"1538179200","count":28},{"epoch":"1538265600","count":40},{"epoch":"1538956800","count":47},{"epoch":"1539043200","count":9},{"epoch":"1539216000","count":6},{"epoch":"1539302400","count":3},{"epoch":"1539820800","count":23},{"epoch":"1539907200","count":1},{"epoch":"1540857600","count":73},{"epoch":"1540944000","count":15},{"epoch":"1541030400","count":1},{"epoch":"1541116800","count":3},{"epoch":"1541203200","count":1},{"epoch":"1541462400","count":1},{"epoch":"1542067200","count":9},{"epoch":"1542153600","count":13},{"epoch":"1542499200","count":4},{"epoch":"1542672000","count":2},{"epoch":"1542931200","count":3},{"epoch":"1543190400","count":3},{"epoch":"1543968000","count":1},{"epoch":"1544313600","count":182},{"epoch":"1544400000","count":13},{"epoch":"1545091200","count":17},{"epoch":"1545177600","count":5},{"epoch":"1545264000","count":10},{"epoch":"1552262400","count":21},{"epoch":"1557187200","count":30},{"epoch":"1560124800","count":1}]');
-
-      // init('[{"epoch":"1516924800","count":2},{"epoch":"1523836800","count":6},{"epoch":"1525564800","count":1},{"epoch":"1532476800","count":10},{"epoch":"1533513600","count":5},{"epoch":"1533686400","count":11},{"epoch":"1535328000","count":3},{"epoch":"1537401600","count":2},{"epoch":"1538006400","count":28},{"epoch":"1538092800","count":13},{"epoch":"1538179200","count":12},{"epoch":"1538265600","count":19},{"epoch":"1538956800","count":19},{"epoch":"1539043200","count":8},{"epoch":"1539216000","count":3},{"epoch":"1539302400","count":1},{"epoch":"1539820800","count":10},{"epoch":"1540857600","count":28},{"epoch":"1540944000","count":3},{"epoch":"1541116800","count":2},{"epoch":"1541462400","count":1},{"epoch":"1542067200","count":2},{"epoch":"1542153600","count":13},{"epoch":"1542499200","count":3},{"epoch":"1542672000","count":1},{"epoch":"1542931200","count":2},{"epoch":"1543190400","count":1},{"epoch":"1543881600","count":18},{"epoch":"1543968000","count":17},{"epoch":"1544140800","count":5},{"epoch":"1544313600","count":812},{"epoch":"1544400000","count":13},{"epoch":"1545091200","count":16},{"epoch":"1545177600","count":5},{"epoch":"1545264000","count":10},{"epoch":"1552262400","count":20},{"epoch":"1557187200","count":29},{"epoch":"1559088000","count":59},{"epoch":"1560124800","count":1}]');
-
+    function getClientHeight() {
+      var containers = document.getElementsByClassName("calendar-heatmap");
+      var calMap = containers[0];
+      var s = window.getComputedStyle(calMap).height;
+      return parseFloat(s.replace("px", ""));
+    }
   </script>
 </body>
+
 </html>
