@@ -232,16 +232,14 @@ function calendarHeatmap() {
 
         legendGroup.append('text')
           .attr('class', 'calendar-heatmap-legend-text calendar-heatmap-legend-text-less')
-          .attr('x', alignWidth - legendWidth - 16)
+          .attr('x', alignWidth - legendWidth - 24)
           .attr('y', alignHeight + SQUARE_LENGTH)
-          // .attr('fill', '#9D9D9D')
           .text(locale.Less);
 
         legendGroup.append('text')
           .attr('class', 'calendar-heatmap-legend-text calendar-heatmap-legend-text-more')
           .attr('x', (alignWidth - legendWidth + SQUARE_PADDING) + (colorRange.length + 1) * 13)
           .attr('y', alignHeight + SQUARE_LENGTH)
-          // .attr('fill', '#9D9D9D')
           .text(locale.More);
       }
 
@@ -270,7 +268,7 @@ function calendarHeatmap() {
         if (index % 2) {
           svg.append('text')
             .attr('class', 'day-initial')
-            .attr('transform', 'translate(-20,' + (SQUARE_LENGTH + SQUARE_PADDING) * (index + 1) + ')')
+            .attr('transform', 'translate(-20,' + ((SQUARE_LENGTH + SQUARE_PADDING) * (index + 1) - 5) + ')')
             .style('text-anchor', 'middle')
             .attr('dy', '2')
             .text(day);
