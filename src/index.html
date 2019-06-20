@@ -1,20 +1,147 @@
-<!DOCTYPE html>
 <html>
 
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" id="viewport" content="initial-scale=1.0, minimum-scale=1.0, shrink-to-fit=no">
   <meta name="apple-mobile-web-app-capable" content="YES">
-  <title>Heatmap</title>
+  <!-- <link rel="stylesheet" type="text/css" href="./cal-heatmap.css">
+  <link rel="stylesheet" type="text/css" href="./index.css"> -->
+  <title>Cal Heatmap</title>
+  <!-- <script src="./moment.min.js" charset="utf-8"></script>
+  <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <script src="./cal-heatmap.min.js"></script> -->
+
   <script src="./moment.min.js" charset="utf-8"></script>
-  <script src="./d3.min.js" charset="utf-8"></script>
-  <script src="./calendar-heatmap.min.js" charset="utf-8"></script>
-  <script src="./heatmap.js" charset="utf-8"></script>
-  <link rel="stylesheet" type="text/css" href="./calendar-heatmap.min.css">
+  <script src="./d3.v4.min.js" charset="utf-8"></script>
+  <link rel="stylesheet" type="text/css" href="./calendar-heatmap.css">
+  <script src="./calendar-heatmap.js"></script>
 </head>
 
-<body onload="loadFinished">
-  <div id="calendar"></div>
+<body>
+  <div id="cal-heatmap-container"></div>
+  <!-- <script src="./moment.min.js" charset="utf-8"></script>
+    <script src="./d3.v4.min.js" charset="utf-8"></script>
+    <script src="./calendar-heatmap.js"></script> -->
+  <script type="text/javascript">
+    function averageCount(arr) {
+      var sum = 0;
+      arr.sort(function (a, b) {
+        return a - b
+      });
+      arr.pop();
+      arr.shift();
+      for (var i = 0; i < arr.length; i++) {
+        sum += arr[i];
+      }
+      return sum / arr.length;
+    }
+
+    function init(data, themeColor, lang) {
+      // var chartData = [{
+      //   date: new Date(),
+      //   count: Number
+      // }];
+
+
+      var now = moment().endOf('day').toDate();
+      var yearAgo = moment().startOf('day').subtract(1, 'year').toDate();
+      var chartData = d3.timeDays(yearAgo, now).map(function (dateElement) {
+        return {
+          date: dateElement,
+          count: (dateElement.getDay() !== 0 && dateElement.getDay() !== 6) ? Math.floor(Math.random() * 60) : Math
+            .floor(Math.random() * 10)
+        };
+      });
+
+      // console.log(chartData);
+
+      var dataObj = JSON.parse(data);
+      var firstDate = new Date(0);
+      var lastDate = new Date(0);
+      var finalDataObj = [];
+
+      for (var i = 0; i < dataObj.length; i++) {
+        var dataItem = dataObj[i];
+        if (i == 0) {
+          firstDate.setUTCSeconds(dataItem.epoch);
+        } else if (i == dataObj.length - 1) {
+          lastDate.setUTCSeconds(dataItem.epoch);
+        }
+        var thisDate = new Date(0);
+        thisDate.setUTCSeconds(dataItem.epoch);
+        finalDataObj.push({
+          date: thisDate,
+          count: dataItem.count
+        });
+        // if (countArray.indexOf(dataItem.count) === -1) {
+        //   countArray.push(dataItem.count)
+        // }
+      }
+
+      var enLocalObj = {
+        months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        days: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+        No: 'No',
+        on: 'on',
+        Less: 'Less',
+        More: 'More'
+      }
+
+      var frLocalObj = {
+        months: ['jan.', 'fev.', 'mars.', 'avr.', 'mai.', 'juin.', 'juillet.', 'aôut', 'sept.', 'oct.', 'nov.',
+          'dec.'
+        ],
+        days: ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'],
+        No: 'No',
+        on: 'on',
+        Less: 'Moins',
+        More: 'Plus'
+      }
+
+      var deLocalObj = {
+        months: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+        days: ['So.', 'Mo.', 'Di.', 'Mi.', 'Do.', 'Fr.', 'Sa.'],
+        No: 'No',
+        on: 'on',
+        Less: 'Weniger',
+        More: 'Mehr'
+      }
+
+      var esLocalObj = {
+        months: ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'],
+        days: ['dom.', 'lun.', 'mar.', 'mié.', 'jue.', 'vie.', 'sáb.'],
+        No: 'No',
+        on: 'on',
+        Less: 'Menos',
+        More: 'Más'
+      }
+      var localObj = enLocalObj;
+      if (lang === 'fr') {
+        localObj = frLocalObj;
+      } else if (lang === 'de') {
+        localObj = deLocalObj;
+      } else if (lang === 'es') {
+        localObj = esLocalObj;
+      }
+
+      var chart1 = calendarHeatmap()
+        .data(finalDataObj)
+        .selector('#cal-heatmap-container')
+        .colorRange(['#F0F0F0', themeColor])
+        .tooltipEnabled(false)
+        .legendEnabled(true)
+        .locale(localObj);
+      chart1();
+    }
+
+    init(
+      '[{"epoch":"1516665600","count":4},{"epoch":"1516924800","count":8},{"epoch":"1521936000","count":1},{"epoch":"1523836800","count":14},{"epoch":"1525564800","count":3},{"epoch":"1526342400","count":1},{"epoch":"1527724800","count":1},{"epoch":"1532476800","count":20},{"epoch":"1533513600","count":12},{"epoch":"1533686400","count":31},{"epoch":"1535328000","count":9},{"epoch":"1537401600","count":5},{"epoch":"1538006400","count":23},{"epoch":"1538092800","count":23},{"epoch":"1538179200","count":28},{"epoch":"1538265600","count":40},{"epoch":"1538956800","count":47},{"epoch":"1539043200","count":9},{"epoch":"1539216000","count":6},{"epoch":"1539302400","count":3},{"epoch":"1539820800","count":23},{"epoch":"1539907200","count":1},{"epoch":"1540857600","count":73},{"epoch":"1540944000","count":15},{"epoch":"1541030400","count":1},{"epoch":"1541116800","count":3},{"epoch":"1541203200","count":1},{"epoch":"1541462400","count":1},{"epoch":"1542067200","count":9},{"epoch":"1542153600","count":13},{"epoch":"1542499200","count":4},{"epoch":"1542672000","count":2},{"epoch":"1542931200","count":3},{"epoch":"1543190400","count":3},{"epoch":"1543968000","count":1},{"epoch":"1544313600","count":182},{"epoch":"1544400000","count":13},{"epoch":"1545091200","count":17},{"epoch":"1545177600","count":5},{"epoch":"1545264000","count":10},{"epoch":"1552262400","count":21},{"epoch":"1557187200","count":30},{"epoch":"1560124800","count":1}]'
+    );
+
+    function getClientHeight() {
+      return 180;
+    }
+  </script>
 </body>
 
 </html>
