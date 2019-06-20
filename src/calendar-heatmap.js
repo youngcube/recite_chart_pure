@@ -1,6 +1,6 @@
 function calendarHeatmap() {
   // defaults
-  var width = 1100;
+  var width = 1060;
   var height = 150;
   var legendWidth = 150;
   var selector = 'body';
@@ -152,7 +152,10 @@ function calendarHeatmap() {
         .attr('width', width)
         .attr('class', 'calendar-heatmap')
         .attr('height', height)
-        .style('padding', '15px');
+        .style('padding-left', '30px')
+        .style('padding-right', '5px')
+        .style('padding-top', '15px')
+        .style('padding-bottom', '15px');
 
       dayRects = svg.selectAll('.day-cell')
         .data(dateRange); //  array of days for the last yr
@@ -204,6 +207,8 @@ function calendarHeatmap() {
       }
 
       if (chart.legendEnabled()) {
+        var alignWidth = width + 50;
+        var alignHeight = height + 2;
         var colorRange = [color(0)];
         for (var i = 3; i > 0; i--) {
           colorRange.push(color(max / i));
@@ -218,7 +223,7 @@ function calendarHeatmap() {
           .attr('width', SQUARE_LENGTH)
           .attr('height', SQUARE_LENGTH)
           .attr('x', function (d, i) {
-            return (width - legendWidth) + (i + 1) * 13;
+            return (alignWidth - legendWidth) + (i + 1) * 13;
           })
           .attr('y', height + SQUARE_PADDING)
           .attr('fill', function (d) {
@@ -227,14 +232,16 @@ function calendarHeatmap() {
 
         legendGroup.append('text')
           .attr('class', 'calendar-heatmap-legend-text calendar-heatmap-legend-text-less')
-          .attr('x', width - legendWidth - 13)
-          .attr('y', height + SQUARE_LENGTH)
+          .attr('x', alignWidth - legendWidth - 16)
+          .attr('y', alignHeight + SQUARE_LENGTH)
+          // .attr('fill', '#9D9D9D')
           .text(locale.Less);
 
         legendGroup.append('text')
           .attr('class', 'calendar-heatmap-legend-text calendar-heatmap-legend-text-more')
-          .attr('x', (width - legendWidth + SQUARE_PADDING) + (colorRange.length + 1) * 13)
-          .attr('y', height + SQUARE_LENGTH)
+          .attr('x', (alignWidth - legendWidth + SQUARE_PADDING) + (colorRange.length + 1) * 13)
+          .attr('y', alignHeight + SQUARE_LENGTH)
+          // .attr('fill', '#9D9D9D')
           .text(locale.More);
       }
 
@@ -255,14 +262,15 @@ function calendarHeatmap() {
 
           return Math.floor(matchIndex / 7) * (SQUARE_LENGTH + SQUARE_PADDING);
         })
-        .attr('y', 0); // fix these to the top
+        .attr('y', -4); //顶部月份的间距
+      // .attr('color', '#9D9D9D');
 
       locale.days.forEach(function (day, index) {
         index = formatWeekday(index);
         if (index % 2) {
           svg.append('text')
             .attr('class', 'day-initial')
-            .attr('transform', 'translate(-8,' + (SQUARE_LENGTH + SQUARE_PADDING) * (index + 1) + ')')
+            .attr('transform', 'translate(-20,' + (SQUARE_LENGTH + SQUARE_PADDING) * (index + 1) + ')')
             .style('text-anchor', 'middle')
             .attr('dy', '2')
             .text(day);

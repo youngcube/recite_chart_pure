@@ -2,13 +2,15 @@ text.month-name,
 text.calendar-heatmap-legend-text,
 text.day-initial {
   font-size: 10px;
-  fill: inherit;
   font-family: Helvetica, arial, 'Open Sans', sans-serif;
+  fill: #9d9d9d;
 }
+
 rect.day-cell:hover {
   stroke: #555555;
   stroke-width: 1px;
 }
+
 .day-cell-tooltip {
   position: absolute;
   z-index: 9999;
@@ -19,9 +21,11 @@ rect.day-cell:hover {
   border-radius: 3px;
   text-align: center;
 }
-.day-cell-tooltip > span {
+
+.day-cell-tooltip>span {
   font-family: Helvetica, arial, 'Open Sans', sans-serif
 }
+
 .calendar-heatmap {
   box-sizing: initial;
   overflow: visible;
